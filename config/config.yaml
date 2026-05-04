@@ -1,0 +1,32 @@
+# Abir Market Sentinel Configuration
+quantum_security:
+  agent_id: "market-sentinel"
+  use_hybrid_kem: true
+  algorithm: "ML-KEM-1024+X25519"
+
+behavioral_ai:
+  contamination: 0.1
+  n_estimators: 100
+  random_state: 42
+  sentiment_model: "ProsusAI/finbert"
+
+correlation:
+  time_window_hours: 24
+  news_sources:
+    - "reuters"
+    - "bloomberg"
+    - "cnbc"
+
+alerting:
+  anomaly_weight: 0.4
+  intent_weight: 0.4
+  correlation_weight: 0.2
+  flag_threshold: 0.6
+
+data_ingestion:
+  api_key: "${MARKET_DATA_API_KEY}"
+  rate_limit_per_minute: 100
+
+logging:
+  level: "INFO"
+  file: "logs/sentinel.log"

@@ -1,0 +1,42 @@
+cff-version: 1.2.0
+message: "If you use Abir Market Sentinel in your research, please cite it as below."
+type: software
+authors:
+  - given-names: "Abir"
+    family-names: "Maheshwari"
+    email: "abhirsxn@gmail.com"
+    orcid: "https://orcid.org/0009-0000-0000-0000"  # Replace with actual ORCID
+    affiliation: "Artificial Quantum Dyson Intelligence, Biro Labs, Aquilldriver"
+    roles:
+      - "Developer"
+      - "Maintainer"
+      - "Concept"
+title: "Abir Market Sentinel: AI Insider Trading Detection Engine with Quantum-Ready Security"
+version: 0.1.0
+date-released: 2026-05-04
+url: "https://github.com/Abiress/abir-market-sentinel"
+repository-code: "https://github.com/Abiress/abir-market-sentinel"
+repository-artifact: "https://pypi.org/project/abir-market-sentinel/"
+abstract: >-
+  Abir Market Sentinel is an AI-powered insider trading detection engine
+  that uses behavioral anomaly detection, intent analysis, and
+  trade-news correlation to flag suspicious market activity.
+  It extends Abir-Guard's post-quantum cryptography (ML-KEM-1024,
+  ML-DSA-65) to provide quantum-ready security for sensitive
+  financial detection data. The system goes beyond rule-based
+  detection by analyzing intent rather than just activity,
+  addressing the gap in current insider trading detection systems.
+keywords:
+  - "insider trading detection"
+  - "behavioral AI"
+  - "anomaly detection"
+  - "post-quantum cryptography"
+  - "quantum-safe"
+  - "financial security"
+  - "intent analysis"
+  - "machine learning"
+  - "NIST PQC"
+  - "ML-KEM-1024"
+  - "ML-DSA-65"
+  - "Abir-Guard"
+license: MIT
