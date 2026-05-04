@@ -1,54 +1,61 @@
 import numpy as np
-from transformers import pipeline, AutoTokenizer, AutoModelForSequenceClassification
-import torch
+from typing import List, Dict
 
 class IntentAnalyzer:
     def __init__(self, model_name="ProsusAI/finbert"):
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModelForSequenceClassification.from_pretrained(model_name)
-        self.sentiment_pipeline = pipeline(
-            "sentiment-analysis",
-            model=self.model,
-            tokenizer=self.tokenizer,
-            truncation=True
-        )
         self.suspicious_keywords = [
-            "提前知道", "内幕", "insider", "confidential", "not public",
-            "friend told", "hearsay", "rumor", "提前交易", "private info"
+            "insider", "confidential", "not public",
+            "friend told", "hearsay", "rumor",
+            "提前知道", "内幕", "private info", "提前交易"
         ]
-
-    def analyze_text_intent(self, text: str) -> dict:
-        sentiment = self.sentiment_pipeline(text[:512])[0]
+        self.positive_words = ["good", "great", "excellent", "up", "gain", "profit"]
+        self.negative_words = ["bad", "crash", "down", "loss", "sell", "panic"]
+    
+    def analyze_text_intent(self, text: str) -> Dict:
         text_lower = text.lower()
         keyword_hits = sum(1 for kw in self.suspicious_keywords if kw in text_lower)
-        suspicion_score = min(keyword_hits * 0.2 + (
-            0.3 if sentiment['label'] == 'negative' else 0
-        ), 1.0)
+        
+        pos_count = sum(1 for w in self.positive_words if w in text_lower)
+        neg_count = sum(1 for w in self.negative_words if w in text_lower)
+        
+        if neg_count > pos_count:
+            sentiment = "negative"
+            sentiment_score = 0.8
+        elif pos_count > neg_count:
+            sentiment = "positive"
+            sentiment_score = 0.8
+        else:
+            sentiment = "neutral"
+            sentiment_score = 0.5
+        
+        suspicion_score = min(keyword_hits * 0.2 + (0.3 if sentiment == 'negative' else 0), 1.0)
+        
         return {
-            'sentiment': sentiment['label'],
-            'sentiment_score': sentiment['score'],
+            'sentiment': sentiment,
+            'sentiment_score': sentiment_score,
             'keyword_hits': keyword_hits,
             'suspicion_score': suspicion_score,
             'is_suspicious': suspicion_score > 0.4
         }
-
-    def analyze_trade_intent(self, trade: dict, news_context: list) -> dict:
+    
+    def analyze_trade_intent(self, trade: Dict, news_context: List[Dict]) -> Dict:
         intent_signals = []
+        
         if trade.get('trade_size_deviation', 0) > 3.0:
             intent_signals.append('unusual_size')
         if trade.get('timing_precision_hours', 99) < 2:
             intent_signals.append('precise_timing')
         if trade.get('prior_knowledge_indicator', False):
             intent_signals.append('prior_knowledge')
+        
         news_score = 0.0
         for news in news_context:
             result = self.analyze_text_intent(news.get('headline', ''))
             if result['is_suspicious']:
                 news_score = max(news_score, result['suspicion_score'])
-        combined_score = min(
-            len(intent_signals) * 0.25 + news_score * 0.5,
-            1.0
-        )
+        
+        combined_score = min(len(intent_signals) * 0.25 + news_score * 0.5, 1.0)
+        
         return {
             'intent_signals': intent_signals,
             'news_suspicion': news_score,

@@ -7,19 +7,20 @@ class SuspiciousActivityFlagger:
         self.intent_weight = intent_weight
         self.correlation_weight = correlation_weight
         self.flagged_activities = []
-
+    
     def calculate_risk_score(self, trade_record: Dict) -> float:
         anomaly_score = trade_record.get('anomaly_score', 0)
         intent_score = trade_record.get('combined_intent_score', 0)
         news_count = trade_record.get('related_news_count', 0)
         correlation_score = min(news_count * 0.1, 1.0)
+        
         risk_score = (
             abs(anomaly_score) * self.anomaly_weight +
             intent_score * self.intent_weight +
             correlation_score * self.correlation_weight
         )
         return min(risk_score, 1.0)
-
+    
     def flag_trade(self, trade_record: Dict) -> Dict:
         risk_score = self.calculate_risk_score(trade_record)
         is_flagged = risk_score > 0.6
@@ -34,7 +35,7 @@ class SuspiciousActivityFlagger:
         if is_flagged:
             self.flagged_activities.append(flag_record)
         return flag_record
-
+    
     def _generate_reason(self, trade: Dict, score: float) -> str:
         reasons = []
         if trade.get('is_anomaly'):
@@ -46,7 +47,7 @@ class SuspiciousActivityFlagger:
         if not reasons:
             reasons.append("Elevated risk score")
         return "; ".join(reasons)
-
+    
     def get_flagged_summary(self) -> Dict:
         return {
             'total_flagged': len(self.flagged_activities),

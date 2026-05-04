@@ -8,15 +8,15 @@ class TamperEvidentAuditLog:
         self.logs = []
         self.hash_chain = []
         self._initialize_chain()
-
+    
     def _initialize_chain(self):
         genesis = hashlib.sha256(b"ABIR_MARKET_SENTINEL_GENESIS").hexdigest()
         self.hash_chain.append(genesis)
-
+    
     def _compute_entry_hash(self, entry: Dict, prev_hash: str) -> str:
         content = json.dumps(entry, sort_keys=True) + prev_hash
         return hashlib.sha256(content.encode()).hexdigest()
-
+    
     def log_event(self, event_type: str, details: Dict, user: str = "system") -> Dict:
         entry = {
             'timestamp': datetime.utcnow().isoformat(),
@@ -30,7 +30,7 @@ class TamperEvidentAuditLog:
         self.hash_chain.append(entry_hash)
         self.logs.append(entry)
         return entry
-
+    
     def verify_chain_integrity(self) -> bool:
         for i in range(1, len(self.logs)):
             entry = self.logs[i]
@@ -39,13 +39,13 @@ class TamperEvidentAuditLog:
             if computed != entry['entry_hash']:
                 return False
         return True
-
+    
     def get_logs(self, limit: int = 100, event_type: str = None) -> List[Dict]:
         logs = self.logs[-limit:]
         if event_type:
             logs = [l for l in logs if l['event_type'] == event_type]
         return logs
-
+    
     def export_for_compliance(self) -> Dict:
         return {
             'total_entries': len(self.logs),

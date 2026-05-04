@@ -1,14 +1,12 @@
 from datetime import datetime, timedelta
 from typing import Dict, List
-import hashlib
-import json
 
 class QuantumKeyRotationManager:
     def __init__(self, default_max_operations: int = 1000, default_max_age_hours: int = 24):
         self.keys = {}
         self.default_max_operations = default_max_operations
         self.default_max_age_hours = default_max_age_hours
-
+    
     def register_key(self, key_id: str, max_operations: int = None, max_age_hours: int = None):
         self.keys[key_id] = {
             'created_at': datetime.utcnow().isoformat(),
@@ -17,12 +15,12 @@ class QuantumKeyRotationManager:
             'max_age_hours': max_age_hours or self.default_max_age_hours,
             'status': 'active'
         }
-
+    
     def record_usage(self, key_id: str, operation: str = "encrypt"):
         if key_id not in self.keys:
             raise ValueError(f"Key {key_id} not registered")
         self.keys[key_id]['operation_count'] += 1
-
+    
     def needs_rotation(self, key_id: str) -> bool:
         if key_id not in self.keys:
             return False
@@ -31,7 +29,7 @@ class QuantumKeyRotationManager:
         age_hours = age.total_seconds() / 3600
         return (key['operation_count'] >= key['max_operations'] or
                 age_hours >= key['max_age_hours'])
-
+    
     def rotate_key(self, key_id: str) -> Dict:
         if key_id not in self.keys:
             raise ValueError(f"Key {key_id} not registered")
@@ -51,9 +49,9 @@ class QuantumKeyRotationManager:
             'new_key': new_key_id,
             'rotated_at': datetime.utcnow().isoformat()
         }
-
+    
     def get_key_metadata(self, key_id: str) -> Dict:
         return self.keys.get(key_id, {})
-
+    
     def list_keys_needing_rotation(self) -> List[str]:
         return [k for k in self.keys if self.needs_rotation(k)]

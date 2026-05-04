@@ -19,6 +19,10 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+venv/
+env/
+ENV/
+*.egg-info/
 
 # Virtual Environment
 venv/
@@ -33,7 +37,7 @@ ENV/
 *~
 
 # Jupyter Notebook
-.ipynb_checkpoints
+.ipynb_checkpoints/
 
 # Environment variables
 .env
@@ -56,3 +60,8 @@ htmlcov/
 # OS
 .DS_Store
 Thumbs.db
+
+# Internal task files (not for repo)
+PHASES.md
+TASK.md
+debug_project.py

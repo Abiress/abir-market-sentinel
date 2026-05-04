@@ -7,7 +7,7 @@ class CanaryTradeManager:
     def __init__(self):
         self.canary_trades = {}
         self.access_log = []
-
+    
     def generate_canary_trade(self, symbol: str = "CANARY") -> Dict:
         canary_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
         canary = {
@@ -21,7 +21,7 @@ class CanaryTradeManager:
         }
         self.canary_trades[canary['trade_id']] = canary
         return canary
-
+    
     def check_canary_access(self, trade_id: str) -> bool:
         is_canary = trade_id in self.canary_trades
         self.access_log.append({
@@ -30,7 +30,7 @@ class CanaryTradeManager:
             'accessed_at': datetime.utcnow().isoformat()
         })
         return is_canary
-
+    
     def get_breach_status(self) -> Dict:
         canary_accessed = [log for log in self.access_log if log['is_canary']]
         return {
@@ -39,7 +39,7 @@ class CanaryTradeManager:
             'total_canaries': len(self.canary_trades),
             'accessed_canaries': canary_accessed
         }
-
+    
     def deploy_canaries(self, count: int = 5) -> List[Dict]:
         deployed = []
         for _ in range(count):

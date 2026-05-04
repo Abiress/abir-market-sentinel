@@ -1,13 +1,12 @@
-import requests
 import pandas as pd
-from typing import List, Dict
 from datetime import datetime, timedelta
+from typing import List, Dict
 
 class MarketDataIngestor:
     def __init__(self, api_key=None):
         self.api_key = api_key
-        self.base_url = "https://api.example.com"  # Replace with actual market data API
-
+        self.base_url = "https://api.example.com"
+    
     def fetch_trades(self, symbol: str, start: datetime, end: datetime) -> pd.DataFrame:
         trades = []
         current = start
@@ -24,7 +23,7 @@ class MarketDataIngestor:
             })
             current += timedelta(hours=1)
         return pd.DataFrame(trades)
-
+    
     def fetch_news(self, symbols: List[str], hours=24) -> pd.DataFrame:
         news = []
         for symbol in symbols:
@@ -35,7 +34,7 @@ class MarketDataIngestor:
                 'source': 'mock_source'
             })
         return pd.DataFrame(news)
-
+    
     def fetch_agent_logs(self, agent_id: str, hours=24) -> pd.DataFrame:
         logs = []
         for i in range(10):

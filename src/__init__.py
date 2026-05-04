@@ -1,6 +1,17 @@
-from src.quantum_security.vault import QuantumVault
-from src.behavioral_ai.anomaly_detector import BehavioralAnomalyDetector
-from src.behavioral_ai.intent_analyzer import IntentAnalyzer
-from src.alerting.flagging import SuspiciousActivityFlagger
+# src/__init__.py - Lazy imports to avoid premature numpy loading
+import sys
+import os
 
+# Only import types that don't require numpy/pandas
 __version__ = "0.1.0"
+
+# Lazy import function
+def _get_vault():
+    from src.quantum_security.vault import QuantumVault
+    return QuantumVault
+
+def _get_detector():
+    from src.behavioral_ai.anomaly_detector import BehavioralAnomalyDetector
+    return BehavioralAnomalyDetector
+
+__all__ = ["__version__"]
