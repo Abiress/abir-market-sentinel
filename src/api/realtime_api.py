@@ -5,7 +5,7 @@ from src.behavioral_ai.intent_analyzer import IntentAnalyzer
 from src.correlation.linker import TradeNewsCorrelator
 from src.alerting.flagging import SuspiciousActivityFlagger
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timezone
 
 app = Flask(__name__)
 
@@ -21,7 +21,7 @@ def health():
     return jsonify({
         'status': 'healthy',
         'service': 'abir-market-sentinel',
-        'version': '0.1.0',
+        'version': '1.0.1',
         'quantum_safe': True
     })
 
@@ -35,6 +35,14 @@ def detect_insider_trading():
         
         if trades.empty:
             return jsonify({'error': 'No trades provided'}), 400
+
+        # Auto-train on incoming batch if the model has not been trained yet.
+        if not detector.is_trained:
+            if len(trades) < 10:
+                return jsonify({
+                    'error': 'Model is not trained. Provide at least 10 trades or call /api/train first.'
+                }), 400
+            detector.train(trades)
         
         results = detector.detect_anomalies(trades)
         if not news.empty:
@@ -63,7 +71,7 @@ def detect_insider_trading():
             'total_trades': len(trades),
             'anomalies_detected': int(results['is_anomaly'].sum()),
             'flagged_trades': flagged,
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': datetime.now(timezone.utc).isoformat()
         })
     
     except Exception as e:

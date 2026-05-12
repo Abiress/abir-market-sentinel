@@ -1,17 +1,66 @@
 import numpy as np
-from sklearn.ensemble import IsolationForest
-from sklearn.preprocessing import StandardScaler
 import pandas as pd
+
+try:
+    from sklearn.ensemble import IsolationForest
+    from sklearn.preprocessing import StandardScaler
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    IsolationForest = None
+    StandardScaler = None
+    SKLEARN_AVAILABLE = False
+
+
+class _NumpyScaler:
+    def __init__(self):
+        self.mean_ = None
+        self.scale_ = None
+
+    def fit_transform(self, features: np.ndarray) -> np.ndarray:
+        self.mean_ = np.mean(features, axis=0)
+        self.scale_ = np.std(features, axis=0)
+        self.scale_[self.scale_ == 0] = 1.0
+        return (features - self.mean_) / self.scale_
+
+    def transform(self, features: np.ndarray) -> np.ndarray:
+        if self.mean_ is None or self.scale_ is None:
+            raise ValueError("Scaler must be fit before transform")
+        return (features - self.mean_) / self.scale_
+
+
+class _FallbackIsolationModel:
+    def __init__(self, contamination: float = 0.1):
+        self.contamination = contamination
+        self.center_ = None
+        self.threshold_ = None
+
+    def fit(self, scaled_features: np.ndarray):
+        self.center_ = np.median(scaled_features, axis=0)
+        distances = np.linalg.norm(scaled_features - self.center_, axis=1)
+        percentile = max(0.0, min(100.0, 100 * (1.0 - self.contamination)))
+        self.threshold_ = float(np.percentile(distances, percentile))
+
+    def decision_function(self, scaled_features: np.ndarray) -> np.ndarray:
+        distances = np.linalg.norm(scaled_features - self.center_, axis=1)
+        return self.threshold_ - distances
+
+    def predict(self, scaled_features: np.ndarray) -> np.ndarray:
+        scores = self.decision_function(scaled_features)
+        return np.where(scores < 0, -1, 1)
 
 class BehavioralAnomalyDetector:
     def __init__(self, contamination=0.1):
         self.contamination = contamination
-        self.model = IsolationForest(
-            contamination=contamination,
-            random_state=42,
-            n_estimators=100
-        )
-        self.scaler = StandardScaler()
+        if SKLEARN_AVAILABLE:
+            self.model = IsolationForest(
+                contamination=contamination,
+                random_state=42,
+                n_estimators=100
+            )
+            self.scaler = StandardScaler()
+        else:
+            self.model = _FallbackIsolationModel(contamination=contamination)
+            self.scaler = _NumpyScaler()
         self.is_trained = False
         self.feature_columns = [
             'volume', 'price_change_pct', 'trade_size_deviation',

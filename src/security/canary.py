@@ -1,6 +1,6 @@
 import random
 import string
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List
 
 class CanaryTradeManager:
@@ -13,11 +13,11 @@ class CanaryTradeManager:
         canary = {
             'trade_id': f"CANARY_{canary_id}",
             'symbol': symbol,
-            'timestamp': datetime.utcnow().isoformat(),
+            'timestamp': datetime.now(timezone.utc).isoformat(),
             'price': 999.99,
             'volume': 1,
             'is_canary': True,
-            'created_at': datetime.utcnow().isoformat()
+            'created_at': datetime.now(timezone.utc).isoformat()
         }
         self.canary_trades[canary['trade_id']] = canary
         return canary
@@ -27,7 +27,7 @@ class CanaryTradeManager:
         self.access_log.append({
             'trade_id': trade_id,
             'is_canary': is_canary,
-            'accessed_at': datetime.utcnow().isoformat()
+            'accessed_at': datetime.now(timezone.utc).isoformat()
         })
         return is_canary
     

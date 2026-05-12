@@ -1,5 +1,5 @@
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict
 
 class MarketDataIngestor:
@@ -10,9 +10,11 @@ class MarketDataIngestor:
     def fetch_trades(self, symbol: str, start: datetime, end: datetime) -> pd.DataFrame:
         trades = []
         current = start
+        sequence = 0
         while current < end:
+            trade_id = f"T{int(current.timestamp())}_{sequence:04d}"
             trades.append({
-                'trade_id': f"T{datetime.now().timestamp():.0f}",
+                'trade_id': trade_id,
                 'symbol': symbol,
                 'timestamp': current.isoformat(),
                 'price': 100.0 + (hash(str(current)) % 50),
@@ -22,6 +24,7 @@ class MarketDataIngestor:
                 'prior_trade_count_24h': hash(str(current)) % 50,
             })
             current += timedelta(hours=1)
+            sequence += 1
         return pd.DataFrame(trades)
     
     def fetch_news(self, symbols: List[str], hours=24) -> pd.DataFrame:
@@ -30,7 +33,7 @@ class MarketDataIngestor:
             news.append({
                 'symbol': symbol,
                 'headline': f"Market update for {symbol}",
-                'published_at': datetime.utcnow().isoformat(),
+                'published_at': datetime.now(timezone.utc).isoformat(),
                 'source': 'mock_source'
             })
         return pd.DataFrame(news)
@@ -40,7 +43,7 @@ class MarketDataIngestor:
         for i in range(10):
             logs.append({
                 'agent_id': agent_id,
-                'timestamp': (datetime.utcnow() - timedelta(hours=i)).isoformat(),
+                'timestamp': (datetime.now(timezone.utc) - timedelta(hours=i)).isoformat(),
                 'action_type': 'info_request' if i % 2 == 0 else 'trade_execution',
                 'details': f"Action {i}"
             })

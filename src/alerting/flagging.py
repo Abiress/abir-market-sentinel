@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Dict
 
 class SuspiciousActivityFlagger:
@@ -30,7 +30,7 @@ class SuspiciousActivityFlagger:
             'risk_score': risk_score,
             'is_flagged': is_flagged,
             'reason': self._generate_reason(trade_record, risk_score),
-            'flagged_at': datetime.utcnow().isoformat()
+            'flagged_at': datetime.now(timezone.utc).isoformat()
         }
         if is_flagged:
             self.flagged_activities.append(flag_record)

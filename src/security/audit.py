@@ -1,6 +1,6 @@
 import hashlib
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Dict
 
 class TamperEvidentAuditLog:
@@ -16,26 +16,31 @@ class TamperEvidentAuditLog:
     def _compute_entry_hash(self, entry: Dict, prev_hash: str) -> str:
         content = json.dumps(entry, sort_keys=True) + prev_hash
         return hashlib.sha256(content.encode()).hexdigest()
+
+    def _hash_payload(self, entry: Dict) -> Dict:
+        payload = dict(entry)
+        payload.pop('entry_hash', None)
+        return payload
     
     def log_event(self, event_type: str, details: Dict, user: str = "system") -> Dict:
         entry = {
-            'timestamp': datetime.utcnow().isoformat(),
+            'timestamp': datetime.now(timezone.utc).isoformat(),
             'event_type': event_type,
             'details': details,
             'user': user,
             'prev_hash': self.hash_chain[-1]
         }
-        entry_hash = self._compute_entry_hash(entry, self.hash_chain[-1])
+        entry_hash = self._compute_entry_hash(self._hash_payload(entry), self.hash_chain[-1])
         entry['entry_hash'] = entry_hash
         self.hash_chain.append(entry_hash)
         self.logs.append(entry)
         return entry
     
     def verify_chain_integrity(self) -> bool:
-        for i in range(1, len(self.logs)):
+        for i in range(len(self.logs)):
             entry = self.logs[i]
-            prev_hash = self.hash_chain[i-1]
-            computed = self._compute_entry_hash(entry, prev_hash)
+            prev_hash = self.hash_chain[i]
+            computed = self._compute_entry_hash(self._hash_payload(entry), prev_hash)
             if computed != entry['entry_hash']:
                 return False
         return True

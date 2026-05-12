@@ -3,7 +3,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from src.quantum_security.vault import QuantumVault
 from src.behavioral_ai.anomaly_detector import BehavioralAnomalyDetector
 from src.behavioral_ai.intent_analyzer import IntentAnalyzer
@@ -33,10 +33,10 @@ def main():
     canary_manager = CanaryTradeManager()
     key_rotation = QuantumKeyRotationManager(default_max_operations=1000)
     
-    audit_log.log_event("system_start", {"version": "0.1.0", "phases": [1, 2, 3]})
+    audit_log.log_event("system_start", {"version": "1.0.1", "phases": [1, 2, 3]})
     
     print("\n[Phase 1] Ingesting market data...")
-    end = datetime.utcnow()
+    end = datetime.now(timezone.utc)
     start = end - timedelta(days=7)
     trades = ingestor.fetch_trades("AAPL", start, end)
     news = ingestor.fetch_news(["AAPL", "MSFT"], hours=24)

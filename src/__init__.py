@@ -3,7 +3,7 @@ import sys
 import os
 
 # Only import types that don't require numpy/pandas
-__version__ = "0.1.0"
+__version__ = "1.0.1"
 
 # Lazy import function
 def _get_vault():

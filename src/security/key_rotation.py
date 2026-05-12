@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
 from typing import Dict, List
 
 class QuantumKeyRotationManager:
@@ -9,7 +9,7 @@ class QuantumKeyRotationManager:
     
     def register_key(self, key_id: str, max_operations: int = None, max_age_hours: int = None):
         self.keys[key_id] = {
-            'created_at': datetime.utcnow().isoformat(),
+            'created_at': datetime.now(timezone.utc).isoformat(),
             'operation_count': 0,
             'max_operations': max_operations or self.default_max_operations,
             'max_age_hours': max_age_hours or self.default_max_age_hours,
@@ -25,7 +25,7 @@ class QuantumKeyRotationManager:
         if key_id not in self.keys:
             return False
         key = self.keys[key_id]
-        age = datetime.utcnow() - datetime.fromisoformat(key['created_at'])
+        age = datetime.now(timezone.utc) - datetime.fromisoformat(key['created_at'])
         age_hours = age.total_seconds() / 3600
         return (key['operation_count'] >= key['max_operations'] or
                 age_hours >= key['max_age_hours'])
@@ -34,9 +34,9 @@ class QuantumKeyRotationManager:
         if key_id not in self.keys:
             raise ValueError(f"Key {key_id} not registered")
         old_key = self.keys[key_id].copy()
-        new_key_id = f"{key_id}_rotated_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        new_key_id = f"{key_id}_rotated_{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
         self.keys[new_key_id] = {
-            'created_at': datetime.utcnow().isoformat(),
+            'created_at': datetime.now(timezone.utc).isoformat(),
             'operation_count': 0,
             'max_operations': old_key['max_operations'],
             'max_age_hours': old_key['max_age_hours'],
@@ -47,7 +47,7 @@ class QuantumKeyRotationManager:
         return {
             'old_key': key_id,
             'new_key': new_key_id,
-            'rotated_at': datetime.utcnow().isoformat()
+            'rotated_at': datetime.now(timezone.utc).isoformat()
         }
     
     def get_key_metadata(self, key_id: str) -> Dict:

@@ -12,18 +12,47 @@ except ImportError:
     AbirVault = None
 
 import json
+import uuid
 import warnings
+
+
+class _FallbackVault:
+    def __init__(self):
+        self._store = {}
+        self._keys = set()
+
+    def list_keypairs(self):
+        return sorted(self._keys)
+
+    def generate_keypair(self, key_id: str):
+        self._keys.add(key_id)
+
+    def store(self, key_id: str, data: bytes) -> str:
+        self._keys.add(key_id)
+        token = f"fallback:{key_id}:{uuid.uuid4().hex}"
+        self._store[token] = data
+        return token
+
+    def retrieve(self, key_id: str, ciphertext: str) -> bytes:
+        _ = key_id
+        if ciphertext not in self._store:
+            raise KeyError("Ciphertext not found in fallback vault")
+        return self._store[ciphertext]
 
 class QuantumVault:
     def __init__(self, agent_id="market-sentinel"):
-        if not ABIR_GUARD_AVAILABLE:
-            raise ImportError(
-                "abir-guard not installed. Install from: "
-                "https://github.com/Abiress/abir-guard"
-            )
-        self.vault = AbirVault()
         self.agent_id = agent_id
-        self.kem = HybridKem()
+        if ABIR_GUARD_AVAILABLE:
+            self.vault = AbirVault()
+            self.kem = HybridKem()
+        else:
+            warnings.warn(
+                "abir-guard not installed; using in-memory fallback vault. "
+                "Install abir-guard for production-grade PQC.",
+                RuntimeWarning,
+            )
+            self.vault = _FallbackVault()
+            self.kem = None
         self._ensure_keys()
     
     def _ensure_keys(self):
@@ -47,4 +76,6 @@ class QuantumVault:
         return self.vault.store(f"{self.agent_id}-anomaly", data)
     
     def quantum_encrypt(self, data: bytes):
+        if self.kem is None:
+            return {"ciphertext": data, "mode": "fallback"}
         return self.kem.encapsulate(data)
